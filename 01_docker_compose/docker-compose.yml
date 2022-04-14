@@ -16,8 +16,8 @@ services:
     build: .
     image: python:3
     command: python3 manage.py runserver 0.0.0.0:8000
-    volumes:
-      - $HOME/Yandex_Pr/Sprint_1/SQL/new_admin_panel_sprint_1/02_movies_admin:/code/
+#    volumes:
+#      - $HOME/Yandex_Pr/Sprint_1/SQL/new_admin_panel_sprint_1/02_movies_admin:/code/
     ports:
       - "8000:8000"
     env_file:
