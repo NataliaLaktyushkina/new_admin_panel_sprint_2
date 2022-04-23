@@ -9,9 +9,6 @@ from django.db.models.functions import Cast
 from movies.models import FilmWork
 
 
-
-
-
 class MoviesApiMixin:
     model = FilmWork
     http_method_names = ['get']
@@ -19,25 +16,26 @@ class MoviesApiMixin:
     @classmethod
     def __aggregate_person(cls, role):
         persons = ArrayAgg('persons__full_name', distinct=True,
-                            filter=Q(persons__full_name__isnull=False)
-                            & Q(personfilmwork__role=role)),
+                           filter=Q(persons__full_name__isnull=False)
+                                  & Q(personfilmwork__role=role)),
         return persons
 
-
     def get_queryset(self):
-        filmworks = FilmWork.objects.all().values().annotate(
+        filmworks = FilmWork.objects.all().values(
+            'id', 'title', 'description', 'creation_date', 'type'
+            ).annotate(
             rating=Cast('rating', output_field=FloatField()),
             genres=ArrayAgg('genres__name', distinct=True),
             actors=ArrayAgg('persons__full_name', distinct=True,
                             filter=Q(persons__full_name__isnull=False)
-                                   &Q(personfilmwork__role='actor')),
+                                   & Q(personfilmwork__role='actor')),
             # actors=cls.__aggregate_person('actor'),
             directors=ArrayAgg('persons__full_name', distinct=True,
                                filter=Q(persons__full_name__isnull=False)
-                                      &Q(personfilmwork__role='director')),
+                                      & Q(personfilmwork__role='director')),
             writers=ArrayAgg('persons__full_name', distinct=True,
                              filter=Q(persons__full_name__isnull=False)
-                                    &Q(personfilmwork__role='writer'))
+                                    & Q(personfilmwork__role='writer'))
         )
         return filmworks
 
@@ -69,5 +67,4 @@ class MoviesListApi(MoviesApiMixin, BaseListView):
 class MoviesDetailApi(MoviesApiMixin, BaseDetailView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
-
         return self.object
