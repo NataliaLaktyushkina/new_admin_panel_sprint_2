@@ -7,18 +7,17 @@ from django.db.models import FloatField
 from django.db.models.functions import Cast
 
 from movies.models import FilmWork
+from movies.models import PersonFilmWork
 
 
 class MoviesApiMixin:
     model = FilmWork
     http_method_names = ['get']
 
-    @classmethod
-    def __aggregate_person(cls, role):
-        persons = ArrayAgg('persons__full_name', distinct=True,
-                           filter=Q(persons__full_name__isnull=False)
-                                  & Q(personfilmwork__role=role)),
-        return persons
+    def aggregate_person(self, role):
+        return ArrayAgg('persons__full_name', distinct=True,
+                        filter=Q(persons__full_name__isnull=False)
+                        & Q(personfilmwork__role=role))
 
     def get_queryset(self):
         filmworks = FilmWork.objects.all().values(
@@ -26,16 +25,9 @@ class MoviesApiMixin:
             ).annotate(
             rating=Cast('rating', output_field=FloatField()),
             genres=ArrayAgg('genres__name', distinct=True),
-            actors=ArrayAgg('persons__full_name', distinct=True,
-                            filter=Q(persons__full_name__isnull=False)
-                                   & Q(personfilmwork__role='actor')),
-            # actors=cls.__aggregate_person('actor'),
-            directors=ArrayAgg('persons__full_name', distinct=True,
-                               filter=Q(persons__full_name__isnull=False)
-                                      & Q(personfilmwork__role='director')),
-            writers=ArrayAgg('persons__full_name', distinct=True,
-                             filter=Q(persons__full_name__isnull=False)
-                                    & Q(personfilmwork__role='writer'))
+            actors=self.aggregate_person(PersonFilmWork.Roles.actor),
+            directors=self.aggregate_person(PersonFilmWork.Roles.director),
+            writers=self.aggregate_person(PersonFilmWork.Roles.writer)
         )
         return filmworks
 
