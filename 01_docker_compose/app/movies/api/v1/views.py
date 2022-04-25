@@ -59,4 +59,4 @@ class MoviesListApi(MoviesApiMixin, BaseListView):
 class MoviesDetailApi(MoviesApiMixin, BaseDetailView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        return self.object
+        return kwargs['object']
