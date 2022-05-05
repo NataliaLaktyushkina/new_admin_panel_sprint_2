@@ -34,6 +34,20 @@ services:
     depends_on:
       - django
 
+  elasticsearch:
+    container_name: elastic_search
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+    env_file:
+      - .env
+    image: elasticsearch:7.17.1
+    ports:
+      - 9200:9200
+    depends_on:
+      - postgres
+
+
 volumes:
   static_data:
 
